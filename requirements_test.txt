@@ -1,0 +1,5 @@
+mypy
+pyneevo==1.0.6
+pytest-cov
+pytest-homeassistant-custom-component
+ruff

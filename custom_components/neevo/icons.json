@@ -1,0 +1,12 @@
+{
+  "entity": {
+    "sensor": {
+      "level": { "default": "mdi:gauge" },
+      "estimated_volume": { "default": "mdi:propane-tank-outline" },
+      "last_reading": { "default": "mdi:clock-outline" },
+      "consumption_rate": { "default": "mdi:gas-burner" },
+      "consumed": { "default": "mdi:propane-tank" },
+      "pressure": { "default": "mdi:gauge-low" }
+    }
+  }
+}

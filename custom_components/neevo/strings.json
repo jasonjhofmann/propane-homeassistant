@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect your Nee-Vo account",
+        "description": "Sign in with the email and password you use in the Nee-Vo app. This works with any propane supplier whose monitor reports through Nee-Vo.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email address for your Nee-Vo (Otodata) account.",
+          "password": "Your Nee-Vo account password. It is stored only to refresh tank readings."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Nee-Vo",
+        "description": "Nee-Vo rejected the saved password for {email}. Enter the current password to reconnect.",
+        "data": {
+          "password": "Password"
+        },
+        "data_description": {
+          "password": "The new password is validated against Nee-Vo before it is saved."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "no_tanks": "No propane tanks were found on this account",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This Nee-Vo account is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "level": {
+        "name": "Tank level"
+      },
+      "estimated_volume": {
+        "name": "Estimated volume"
+      },
+      "last_reading": {
+        "name": "Last reading"
+      },
+      "consumption_rate": {
+        "name": "Consumption rate"
+      },
+      "consumed": {
+        "name": "Consumed"
+      },
+      "pressure": {
+        "name": "Pressure"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "Nee-Vo rejected the account credentials"
+    },
+    "cannot_connect": {
+      "message": "Error communicating with Nee-Vo: {error}"
+    },
+    "no_tanks": {
+      "message": "No propane tanks were returned for this account"
+    }
+  }
+}

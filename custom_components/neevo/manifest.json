@@ -1,0 +1,20 @@
+{
+  "domain": "neevo",
+  "name": "Nee-Vo",
+  "codeowners": [
+    "@jasonjhofmann"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/jasonjhofmann/propane-homeassistant",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jasonjhofmann/propane-homeassistant/issues",
+  "loggers": [
+    "pyneevo"
+  ],
+  "quality_scale": "gold",
+  "requirements": [
+    "pyneevo==1.0.6"
+  ],
+  "version": "0.1.0"
+}
