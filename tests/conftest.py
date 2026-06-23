@@ -29,12 +29,17 @@ def make_tank(
     capacity: float | None = TANK_CAPACITY_L,
     pressure: float | None = None,
     pressure_unit: str | None = None,
+    serial: int | str | None = TANK_SERIAL,
 ):
-    """Build a fake pyneevo Tank with synthetic data."""
+    """Build a fake pyneevo Tank with synthetic data.
+
+    ``serial`` accepts an int because pyneevo really does hand the serial back
+    as an int despite its ``str | None`` annotation.
+    """
     tank = MagicMock()
     tank.id = TANK_ID
     tank.name = TANK_NAME
-    tank.serial_number = TANK_SERIAL
+    tank.serial_number = serial
     tank.level = level
     tank.tank_capacity = capacity
     tank.product = "Propane"
@@ -43,7 +48,7 @@ def make_tank(
     tank.data = {
         "Id": TANK_ID,
         "CustomName": TANK_NAME,
-        "SerialNumber": TANK_SERIAL,
+        "SerialNumber": serial,
         "Level": level,
         "TankCapacity": capacity,
         "LastReadingDate": LAST_READING_NET,

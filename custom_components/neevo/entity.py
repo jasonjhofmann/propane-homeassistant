@@ -25,7 +25,9 @@ class NeeVoEntity(CoordinatorEntity[NeeVoCoordinator]):
             manufacturer=MANUFACTURER,
             model=MODEL,
             name=tank.name,
-            serial_number=tank.serial,
+            # pyneevo can hand back the serial as an int; the device registry
+            # requires a string (HA frame warning, hard error from 2026.12.0).
+            serial_number=str(tank.serial) if tank.serial is not None else None,
         )
 
     @property

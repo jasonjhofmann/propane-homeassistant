@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from homeassistant.const import UnitOfPressure, UnitOfVolume
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 
@@ -131,6 +132,27 @@ async def test_estimated_volume_none_without_capacity(
 
     assert state_by_unique_id(hass, f"{TANK_ID}_level").state == "62"
     assert state_by_unique_id(hass, f"{TANK_ID}_estimated_volume").state == "unknown"
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_device_serial_coerced_to_string(hass: HomeAssistant, mock_api) -> None:
+    """An int serial from pyneevo is stored as a string on the device.
+
+    The device registry rejects a non-string serial_number (HA frame warning,
+    hard error from 2026.12.0), but pyneevo hands the serial back as an int.
+    """
+    mock_api.get_tanks_info.return_value = {TANK_ID: make_tank(serial=12345678)}
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, TANK_ID)})
+    assert device is not None
+    assert device.serial_number == "12345678"
+    assert isinstance(device.serial_number, str)
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()

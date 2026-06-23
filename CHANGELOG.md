@@ -13,7 +13,9 @@ Initial release. Gold quality-scale target.
 - One device per tank, with sensors: tank level (%), estimated volume (gal),
   last reading (timestamp), consumption rate (gal/day), consumed (L,
   `total_increasing`, for the Energy dashboard), and an optional diagnostic
-  pressure sensor.
+  pressure sensor. The device `serial_number` is coerced to a string, since
+  `pyneevo` returns it as an int (which the device registry rejects — a hard
+  error from HA 2026.12.0).
 - Forward-only consumed-liters meter and a ≤30-day rate ring, both persisted to
   a per-entry `Store` (debounced save, flushed on unload) so they survive
   restarts. Both warm up over successive polls — `pyneevo` exposes no historical
