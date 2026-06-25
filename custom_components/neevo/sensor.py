@@ -47,13 +47,14 @@ class NeeVoSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[NeeVoTankData], bool] = lambda _: True
 
 
+# Entity icons live in icons.json (icon translations) as the single source of
+# truth; descriptions intentionally carry no icon= so the two cannot drift.
 SENSOR_DESCRIPTIONS: tuple[NeeVoSensorEntityDescription, ...] = (
     NeeVoSensorEntityDescription(
         key="level",
         translation_key="level",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:gauge",
         value_fn=lambda tank: tank.level_pct,
     ),
     NeeVoSensorEntityDescription(
@@ -75,7 +76,6 @@ SENSOR_DESCRIPTIONS: tuple[NeeVoSensorEntityDescription, ...] = (
         translation_key="consumption_rate",
         native_unit_of_measurement=UNIT_GALLONS_PER_DAY,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:gas-burner",
         value_fn=lambda tank: tank.rate_gal_per_day,
     ),
     NeeVoSensorEntityDescription(
@@ -84,7 +84,6 @@ SENSOR_DESCRIPTIONS: tuple[NeeVoSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.GAS,
         native_unit_of_measurement=UnitOfVolume.LITERS,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        icon="mdi:propane-tank",
         value_fn=lambda tank: tank.consumed_l,
     ),
     NeeVoSensorEntityDescription(

@@ -43,6 +43,22 @@ async def test_setup_connection_error_is_not_ready(
     assert entry.state is ConfigEntryState.SETUP_RETRY
 
 
+async def test_setup_first_refresh_error_is_not_ready(
+    hass: HomeAssistant, mock_api
+) -> None:
+    """Login succeeds but the first refresh's fetch fails -> SETUP_RETRY.
+
+    Exercises the first_refresh path (not the login try/except), which raises
+    ConfigEntryNotReady from the coordinator rather than __init__.
+    """
+    mock_api.refresh_tanks.side_effect = GenericHTTPError("503")
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+
+
 async def test_refresh_auth_failure_triggers_reauth(
     hass: HomeAssistant, mock_api
 ) -> None:

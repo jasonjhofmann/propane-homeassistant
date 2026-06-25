@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from aiohttp.client_exceptions import ClientError
@@ -11,7 +12,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from pyneevo import NeeVoApiInterface
 from pyneevo.errors import GenericHTTPError, InvalidCredentialsError, PyNeeVoError
 
-from .const import DOMAIN
+from .const import DOMAIN, REQUEST_TIMEOUT
 from .coordinator import NeeVoConfigEntry, NeeVoCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,9 +23,10 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: NeeVoConfigEntry) -> bool:
     """Set up Nee-Vo from a config entry."""
     try:
-        api = await NeeVoApiInterface.login(
-            entry.data[CONF_EMAIL], entry.data[CONF_PASSWORD]
-        )
+        async with asyncio.timeout(REQUEST_TIMEOUT):
+            api = await NeeVoApiInterface.login(
+                entry.data[CONF_EMAIL], entry.data[CONF_PASSWORD]
+            )
     except InvalidCredentialsError as err:
         raise ConfigEntryAuthFailed(
             translation_domain=DOMAIN,

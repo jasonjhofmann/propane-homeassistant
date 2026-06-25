@@ -63,9 +63,15 @@ One device per tank, with these sensors:
 | Consumed | L | Gas | Cumulative consumption (Energy dashboard) |
 | Pressure | (from device) | Pressure | Diagnostic; only if the monitor reports pressure |
 
+The **Pressure** sensor's unit is mapped from what the monitor reports (`psi`,
+`psig`, `kpa`, `bar`, `mbar`, `hpa`). If a monitor reports an unrecognized unit
+string, the sensor still appears but without a unit of measurement.
+
 The **Consumed** sensor is a forward-only `total_increasing` meter: each poll it
 adds any drop in the tank's liter level to a running total (refills are
-ignored), so it only ever rises. It is persisted across restarts.
+ignored), so it only ever rises. It is persisted across restarts. On a fresh
+install it reads `unknown` until a second poll provides a level to compare
+against (see *Known limitations*).
 
 ## Energy dashboard wiring
 
@@ -121,6 +127,10 @@ automation:
 - **Entities `unavailable`** — the monitor missed its last cloud check-in
   (cellular monitors report intermittently); the integration recovers on the
   next successful poll.
+- **All entities `unavailable` after working before** — if every monitor has
+  been removed from your Nee-Vo account, the integration has no tanks to report
+  and marks all entities unavailable; they return on the next poll once at least
+  one monitor is back on the account.
 - **Download diagnostics** (integration page → ⋮ → Download diagnostics) to see
   each tank's last telemetry and the update health — credentials, serials, tank
   IDs, and any address fields are redacted.

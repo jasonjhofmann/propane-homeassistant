@@ -10,7 +10,9 @@ from pyneevo.errors import GenericHTTPError, InvalidCredentialsError
 
 from custom_components.neevo.coordinator import (
     NeeVoCoordinator,
+    _coerce_float,
     _safe_pressure,
+    _sanitize_state,
     net_date_to_datetime,
 )
 
@@ -23,9 +25,81 @@ def test_net_date_parsing() -> None:
     assert parsed == datetime(2026, 6, 9, 18, 0, tzinfo=UTC)
     # Epoch-ms is absolute UTC; the +0000 form lands on the same instant.
     assert net_date_to_datetime("/Date(1781028000000+0000)/") == parsed
+    # A bare epoch with no tz suffix is still accepted.
+    assert net_date_to_datetime("/Date(1781028000000)/") == parsed
     assert net_date_to_datetime(None) is None
     assert net_date_to_datetime("") is None
     assert net_date_to_datetime("not a date") is None
+
+
+def test_net_date_rejects_malformed_digits() -> None:
+    """A digit run not closed by a paren must reject, not parse a 1970 stub.
+
+    The loose r"/Date\\((\\d+)" pattern would capture '123' from '/Date(123abc)/'
+    and emit a nonsense 1970-era timestamp; the anchored pattern rejects it.
+    """
+    assert net_date_to_datetime("/Date(123abc456)/") is None
+    assert net_date_to_datetime("/Date(abc)/") is None
+
+
+def test_net_date_out_of_range_is_none() -> None:
+    """An absurdly large epoch overflows fromtimestamp -> None, not a crash."""
+    assert net_date_to_datetime("/Date(999999999999999999999)/") is None
+
+
+def test_coerce_float() -> None:
+    """_coerce_float accepts finite numbers and rejects junk/NaN/inf."""
+    assert _coerce_float(3) == 3.0
+    assert _coerce_float("4.5") == 4.5
+    assert _coerce_float(None) is None
+    assert _coerce_float("n/a") is None
+    assert _coerce_float(float("nan")) is None
+    assert _coerce_float(float("inf")) is None
+    assert _coerce_float(float("-inf")) is None
+
+
+def test_sanitize_state_rejects_non_mapping() -> None:
+    """A non-dict blob from a corrupt Store yields empty state, not a crash."""
+    assert _sanitize_state(["not", "a", "dict"]) == {}
+
+
+def test_sanitize_state_drops_and_keeps() -> None:
+    """Sanitize keeps valid fields, drops corrupt totals/rows, coerces ints."""
+    t0 = datetime(2026, 6, 9, tzinfo=UTC).isoformat()
+    stored = {
+        "tank-ok": {
+            "consumed_total_l": 12,  # int -> coerced to float
+            "last_level_l": 500.0,
+            "last_ts": t0,
+            "history": [
+                [t0, 620.0],
+                ["bad-ts", 600.0],  # bad timestamp -> dropped
+                [t0, "n/a"],  # bad liters -> dropped
+                ["only-one-col"],  # wrong arity -> dropped
+            ],
+        },
+        "tank-corrupt": {
+            "consumed_total_l": "garbage",  # non-numeric -> dropped
+            "last_level_l": -5.0,  # negative -> dropped
+            "last_ts": 12345,  # non-string -> dropped
+            "history": "not-a-list",
+        },
+        "tank-bad": "not-a-mapping",  # dropped entirely
+    }
+    clean = _sanitize_state(stored)
+
+    assert set(clean) == {"tank-ok", "tank-corrupt"}
+    ok = clean["tank-ok"]
+    assert ok["consumed_total_l"] == 12.0
+    assert ok["last_level_l"] == 500.0
+    assert ok["last_ts"] == t0
+    assert ok["history"] == [[t0, 620.0]]  # only the one valid row survives
+
+    corrupt = clean["tank-corrupt"]
+    assert "consumed_total_l" not in corrupt
+    assert "last_level_l" not in corrupt
+    assert "last_ts" not in corrupt
+    assert "history" not in corrupt
 
 
 def test_advance_consumed_seed_then_drop_then_refill() -> None:
@@ -63,6 +137,40 @@ def test_advance_rate_same_instant_is_none() -> None:
     t0 = datetime(2026, 6, 9, tzinfo=UTC)
     assert NeeVoCoordinator._advance_rate(state, 620.0, t0) is None
     assert NeeVoCoordinator._advance_rate(state, 500.0, t0) is None
+
+
+def test_advance_rate_sub_minute_window_is_none() -> None:
+    """Readings seconds apart fall under the elapsed floor -> None, no spike.
+
+    Without the floor, a 120 L delta over a few seconds would divide out to an
+    absurd multi-thousand gal/day rate.
+    """
+    from datetime import timedelta
+
+    state: dict = {}
+    t0 = datetime(2026, 6, 9, 12, 0, 0, tzinfo=UTC)
+    t1 = t0 + timedelta(seconds=5)
+    assert NeeVoCoordinator._advance_rate(state, 620.0, t0) is None
+    assert NeeVoCoordinator._advance_rate(state, 500.0, t1) is None
+
+
+def test_build_tank_data_rejects_out_of_range_level() -> None:
+    """A level outside 0-100 or a non-positive capacity yields no volume."""
+    coordinator = NeeVoCoordinator.__new__(NeeVoCoordinator)
+    coordinator._state = {}
+    now = datetime(2026, 6, 9, tzinfo=UTC)
+
+    over = NeeVoCoordinator._build_tank_data(
+        coordinator, make_tank(level=150, capacity=1000.0), now
+    )
+    assert over.estimated_gal is None
+    assert over.consumed_l is None
+
+    negative_cap = NeeVoCoordinator._build_tank_data(
+        coordinator, make_tank(level=50, capacity=-1000.0), now
+    )
+    assert negative_cap.estimated_gal is None
+    assert negative_cap.capacity_l is None
 
 
 async def test_relogin_transport_error_is_update_failed(
