@@ -1,5 +1,5 @@
 mypy
-pyneevo==1.0.6
+pyneevo==1.0.7
 pytest-cov
 pytest-homeassistant-custom-component
 ruff
