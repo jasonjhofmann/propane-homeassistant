@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **`hacs.json`: declare `country: ["US", "CA"]`.** Nee-Vo / Otodata tank
+  monitors are sold and supported in the US and Canada, and the HACS default
+  store expects region-locked services to declare their countries (the
+  airnow-station submission was bounced for omitting exactly this). No code
+  change.
+
 ## 0.1.1 — 2026-06-25
 
 Hardening release — no behavior change for healthy accounts; all fixes are

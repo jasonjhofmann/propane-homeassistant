@@ -1,4 +1,5 @@
 {
   "name": "Nee-Vo",
-  "homeassistant": "2025.6.0"
+  "homeassistant": "2025.6.0",
+  "country": ["US", "CA"]
 }
