@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **Tests: device lookups work on every harness CI resolves.** The weekly
+  Validate run had failed since 2026-08-31: HA dev hard-errors the deprecated
+  `async_get_device` in test frames. A `_get_device` helper uses
+  `async_get_device_by_identifier` where the harness has it (HA 2026.8+) and
+  falls back on the older harness the Python 3.13 leg resolves. No integration
+  code changes; the integration itself never called the old API.
+- **CI: new Minimum supported HA job.** It reads the floor from `hacs.json`
+  and the integration's requirements from `manifest.json`, resolves every
+  package as of the floor's release date (a fresh resolve of HA 2025.6 pulls a
+  `pycares` too new for its `aiodns` and fails to import), and imports every
+  module against that exact release. It is now the only mypy run: HA 2026.9
+  moved core from voluptuous to probatio, and HA 2026.10 retyped schema
+  arguments to match, so the lint job's mypy step against the newest HA had
+  failed since early October on the voluptuous schemas older releases need.
+  Typing only: HA still accepts voluptuous schemas at runtime, and the tests
+  job still runs on the newest HA.
 - **`hacs.json`: declare `country: ["US", "CA"]`.** Nee-Vo / Otodata tank
   monitors are sold and supported in the US and Canada, and the HACS default
   store expects region-locked services to declare their countries (the

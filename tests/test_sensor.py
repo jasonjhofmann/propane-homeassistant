@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from unittest.mock import patch
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfPressure, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -12,6 +13,22 @@ from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from custom_components.neevo.const import DOMAIN
 
 from .conftest import TANK_CAPACITY_L, TANK_ID, make_entry, make_tank
+
+
+def _get_device(
+    device_reg: dr.DeviceRegistry,
+    identifier: tuple[str, str],
+    entry: ConfigEntry,
+) -> dr.DeviceEntry | None:
+    """Per-entry device lookup that works on every harness this matrix resolves.
+
+    HA 2026.8 added ``async_get_device_by_identifier`` and HA dev hard-errors
+    the old ``async_get_device`` in test frames; the Python 3.13 leg resolves
+    an older harness that predates the new API, so probe for it.
+    """
+    if hasattr(device_reg, "async_get_device_by_identifier"):
+        return device_reg.async_get_device_by_identifier(identifier, entry.entry_id)
+    return device_reg.async_get_device(identifiers={identifier})
 
 
 def state_by_unique_id(hass: HomeAssistant, unique_id: str):
@@ -149,7 +166,7 @@ async def test_device_serial_coerced_to_string(hass: HomeAssistant, mock_api) ->
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, TANK_ID)})
+    device = _get_device(dr.async_get(hass), (DOMAIN, TANK_ID), entry)
     assert device is not None
     assert device.serial_number == "12345678"
     assert isinstance(device.serial_number, str)
