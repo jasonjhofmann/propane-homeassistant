@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 — 2026-10-18
 
 - **Tests: device lookups work on every harness CI resolves.** The weekly
   Validate run had failed since 2026-08-31: HA dev hard-errors the deprecated
