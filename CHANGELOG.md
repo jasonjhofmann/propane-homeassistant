@@ -10,14 +10,14 @@
   code changes; the integration itself never called the old API.
 - **CI: new Minimum supported HA job.** It reads the floor from `hacs.json`
   and the integration's requirements from `manifest.json`, resolves every
-  package as of the floor's release date (a fresh resolve of HA 2025.6 pulls a
-  `pycares` too new for its `aiodns` and fails to import), and imports every
-  module against that exact release. It is now the only mypy run: HA 2026.9
-  moved core from voluptuous to probatio, and HA 2026.10 retyped schema
-  arguments to match, so the lint job's mypy step against the newest HA had
-  failed since early October on the voluptuous schemas older releases need.
-  Typing only: HA still accepts voluptuous schemas at runtime, and the tests
-  job still runs on the newest HA.
+  package as of the floor's release date and restates HA's own exact pins (a
+  fresh resolve of HA 2025.6 pulls a `pycares` too new for its `aiodns` and
+  fails to import), and imports every module against that exact release. It is
+  now the only mypy run: HA 2026.9 moved core from voluptuous to probatio, and
+  HA 2026.10 retyped schema arguments to match, so the lint job's mypy step
+  against the newest HA had failed since early October on the voluptuous
+  schemas older releases need. Typing only: HA still accepts voluptuous
+  schemas at runtime, and the tests job still runs on the newest HA.
 - **`hacs.json`: declare `country: ["US", "CA"]`.** Nee-Vo / Otodata tank
   monitors are sold and supported in the US and Canada, and the HACS default
   store expects region-locked services to declare their countries (the
