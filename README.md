@@ -124,9 +124,11 @@ automation:
   confirm them in the Nee-Vo app first.
 - **"No propane tanks were found"** — the login succeeded but the account has no
   monitors associated with it.
-- **Entities `unavailable`** — the monitor missed its last cloud check-in
-  (cellular monitors report intermittently); the integration recovers on the
-  next successful poll.
+- **Entities `unavailable`** — the last poll of the Nee-Vo cloud failed (a
+  connection error, a timeout, or the cloud returned no tanks), or that tank is
+  no longer on the account; the integration recovers on the next successful
+  poll. A monitor that only missed a check-in stays available with its previous
+  values, so check its **Last reading** timestamp.
 - **All entities `unavailable` after working before** — if every monitor has
   been removed from your Nee-Vo account, the integration has no tanks to report
   and marks all entities unavailable; they return on the next poll once at least

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 — 2026-10-20
+
+- **README: when entities go `unavailable`.** It said a missed cloud
+  check-in makes them unavailable. In fact only a failed poll (connection
+  error, timeout, no tanks returned) or a tank leaving the account does; a
+  monitor that missed a check-in stays available with its previous values.
+  HACS shows the README from the latest release, which is why this ships as
+  one. No integration code changes.
+
 ## 0.1.2 — 2026-10-18
 
 - **Tests: device lookups work on every harness CI resolves.** The weekly
