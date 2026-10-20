@@ -11,16 +11,18 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import NeeVoConfigEntry
 
-# Keys redacted at any depth: credentials, tank identity, and any
-# address/geolocation fields that can appear in a tank's raw .data. Both the
-# NeeVoTankData dataclass field names (tank_id, serial) and the raw Otodata
-# casings (Id, SerialNumber, ...) are listed so nesting is scrubbed either way.
+# Keys redacted at any depth: credentials, tank identity, the user's own tank
+# label, and any address/geolocation fields that can appear in a tank's raw
+# .data. Both the NeeVoTankData dataclass field names (tank_id, serial, name)
+# and the raw Otodata casings (Id, SerialNumber, CustomName, ...) are listed
+# so nesting is scrubbed either way; name is CustomName under another key.
 TO_REDACT = {
     CONF_EMAIL,
     CONF_PASSWORD,
     "serial",
     "SerialNumber",
     "tank_id",
+    "name",
     "id",
     "Id",
     "Address",

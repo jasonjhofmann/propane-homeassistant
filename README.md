@@ -135,7 +135,7 @@ automation:
   one monitor is back on the account.
 - **Download diagnostics** (integration page → ⋮ → Download diagnostics) to see
   each tank's last telemetry and the update health — credentials, serials, tank
-  IDs, and any address fields are redacted.
+  IDs, tank names, and any address fields are redacted.
 
 ## Removal
 

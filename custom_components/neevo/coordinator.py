@@ -198,9 +198,9 @@ class NeeVoCoordinator(DataUpdateCoordinator[dict[str, NeeVoTankData]]):
             ) from err
 
         if not tanks:
-            # GetAllDisplayPropaneDevices returns inside a finally block, so an
-            # HTTP error there yields {} instead of raising; treat an empty map
-            # as a transient failure rather than silently dropping all entities.
+            # An empty map is a failure, not "no tanks now": dropping every
+            # entity on one bad response would be worse than a missed poll.
+            # (pyneevo before 1.0.7 also returned {} for an HTTP error.)
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="no_tanks",

@@ -6,7 +6,7 @@ from custom_components.neevo.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
-from .conftest import TANK_ID, TANK_SERIAL, TEST_EMAIL, make_entry
+from .conftest import TANK_ID, TANK_NAME, TANK_SERIAL, TEST_EMAIL, make_entry
 
 
 async def test_diagnostics_redacts_secrets(hass: HomeAssistant, mock_api) -> None:
@@ -27,6 +27,8 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant, mock_api) -> Non
     # Dataclass-level identity fields are redacted.
     assert tank["serial"] == "**REDACTED**"
     assert tank["tank_id"] == "**REDACTED**"
+    # The user's own tank label (Otodata CustomName) can be an address.
+    assert tank["name"] == "**REDACTED**"
     # The raw .data nested dict is scrubbed too.
     raw = tank["raw"]
     assert raw["SerialNumber"] == "**REDACTED**"
@@ -40,6 +42,7 @@ async def test_diagnostics_redacts_secrets(hass: HomeAssistant, mock_api) -> Non
     assert TEST_EMAIL not in blob
     assert TANK_SERIAL not in blob
     assert TANK_ID not in blob
+    assert TANK_NAME not in blob
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()

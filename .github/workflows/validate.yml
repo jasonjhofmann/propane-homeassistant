@@ -79,7 +79,8 @@ jobs:
       # pins are also restated as direct requirements, because uv installs a
       # since-yanked version only when it is pinned directly (HA 2025.3.0
       # pins aiohttp 3.11.13, yanked later). An integration requirement
-      # released after the floor would need --exclude-newer-package.
+      # pinned to a release newer than the floor (pyneevo 1.0.7, 2026-06)
+      # gets its own --exclude-newer-package cutoff, so it still resolves.
       - name: Pin the floor and the integration's requirements
         run: |
           python3 - <<'PY'
@@ -102,16 +103,31 @@ jobs:
           with open("floor-requirements.txt", "w") as f:
               lines = [f"homeassistant=={floor}", *pins, "voluptuous", *reqs]
               f.write("\n".join(lines) + "\n")
+          late = []
+          for req in reqs:
+              if "==" not in req:
+                  continue
+              name, version = req.split("==", 1)
+              rel = json.load(urllib.request.urlopen(
+                  f"https://pypi.org/pypi/{name}/{version}/json"))
+              up = min(
+                  dt.datetime.fromisoformat(u["upload_time_iso_8601"].replace("Z", "+00:00"))
+                  for u in rel["urls"]
+              )
+              if up > released:
+                  late.append(f"--exclude-newer-package={name}="
+                              f"{(up + dt.timedelta(days=1)):%Y-%m-%dT%H:%M:%SZ}")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"UV_EXCLUDE_NEWER={cutoff}\n")
+              f.write(f"UV_FLOOR_ARGS={' '.join(late)}\n")
           print(f"Declared Home Assistant floor: {floor} (released {released:%Y-%m-%d}); "
                 f"{len(pins)} HA pins restated; requirements: {reqs}; "
-                f"resolving as of {cutoff}")
+                f"resolving as of {cutoff}; per-package cutoffs: {late or 'none'}")
           PY
 
       - name: Import every module against the floor
         run: |
-          uv run --no-project --python "$FLOOR_PYTHON" \
+          uv run --no-project --python "$FLOOR_PYTHON" $UV_FLOOR_ARGS \
             --with-requirements floor-requirements.txt \
             python -c "
           import importlib, pkgutil
@@ -124,7 +140,7 @@ jobs:
 
       - name: Mypy (strict) against the floor
         run: |
-          uv run --no-project --python "$FLOOR_PYTHON" \
+          uv run --no-project --python "$FLOOR_PYTHON" $UV_FLOOR_ARGS \
             --with-requirements floor-requirements.txt \
             --with mypy \
             mypy custom_components/neevo/

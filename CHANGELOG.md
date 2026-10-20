@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.4 — 2026-10-20
+
+- **Fixed: diagnostics leaked the tank's name.** The raw Otodata
+  `CustomName` was redacted, but the same value also appears as the tank's
+  `name` field, which wasn't. A tank name can be an address, and
+  diagnostics are made to be attached to public issues. `name` is now
+  redacted too, and the test checks the name appears nowhere in the dump.
+- **pyneevo 1.0.7.** The manifest still required 1.0.6 while the tests ran
+  1.0.7. 1.0.7 fixes a `return` inside `finally` that swallowed HTTP errors
+  from the tank list (it returned `{}` instead of raising); the integration
+  already handles the errors it now raises. The minimum-supported-HA CI job
+  gives any requirement pinned to a release newer than the floor its own
+  `--exclude-newer-package` cutoff, so the 2025.6.0 floor still resolves.
+
 ## 0.1.3 — 2026-10-20
 
 - **README: when entities go `unavailable`.** It said a missed cloud
